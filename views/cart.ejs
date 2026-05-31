@@ -1,0 +1,68 @@
+<%- include('partials/header') %>
+<div class="container mt-4">
+  <h2 class="mb-4">🛒 Your Shopping Cart</h2>
+
+  <% if (cartItems.length === 0) { %>
+    <div class="text-center py-5">
+      <h4>Your cart is empty</h4>
+      <a href="/products/catalogue" class="btn btn-primary mt-3">Browse Products</a>
+    </div>
+  <% } else { %>
+    <div class="row">
+      <div class="col-md-8">
+        <% cartItems.forEach(item => { %>
+          <div class="card mb-3">
+            <div class="row g-0">
+              <div class="col-md-3">
+                <img src="<%= item.image %>" class="img-fluid rounded-start h-100" alt="<%= item.name %>">
+              </div>
+              <div class="col-md-9">
+                <div class="card-body">
+                  <h5><%= item.name %></h5>
+                  <p class="text-success">₹<%= item.price %> each</p>
+
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                    <strong>Qty:</strong>
+                    <form action="/cart/update-quantity" method="POST" class="d-inline">
+                      <input type="hidden" name="product_id" value="<%= item.product_id %>">
+                      <input type="hidden" name="quantity" value="<%= item.quantity - 1 %>">
+                      <button type="submit" class="btn btn-outline-secondary btn-sm">-</button>
+                    </form>
+                    <span class="fw-bold mx-2"><%= item.quantity %></span>
+                    <form action="/cart/update-quantity" method="POST" class="d-inline">
+                      <input type="hidden" name="product_id" value="<%= item.product_id %>">
+                      <input type="hidden" name="quantity" value="<%= item.quantity + 1 %>">
+                      <button type="submit" class="btn btn-outline-secondary btn-sm">+</button>
+                    </form>
+                  </div>
+
+                  <p><strong>Subtotal: ₹<%= (item.price * item.quantity).toFixed(2) %></strong></p>
+
+                  <form action="/cart/remove" method="POST" class="d-inline">
+                    <input type="hidden" name="product_id" value="<%= item.product_id %>">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+          <div class="card-body">
+            <h5>Order Summary</h5>
+            <hr>
+            <div class="d-flex justify-content-between fs-5">
+              <strong>Total:</strong>
+              <strong class="text-success">₹<%= total %></strong>
+            </div>
+            <a href="/payment/checkout" class="btn btn-success w-100 mt-3">Proceed to Checkout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,85 @@
+<%- include('partials/header') %>
+<div class="container mt-4">
+  <h2>Checkout</h2>
+  <div class="row">
+    <div class="col-md-8">
+      <% cartItems.forEach(item => { %>
+        <div class="card mb-3">
+          <div class="row g-0">
+            <div class="col-md-3">
+              <img src="<%= item.image %>" class="img-fluid h-100" alt="">
+            </div>
+            <div class="col-md-9">
+              <div class="card-body">
+                <h5><%= item.name %></h5>
+                <p>₹<%= item.price %> × <%= item.quantity %></p>
+                <p><strong>Subtotal: ₹<%= (item.price * item.quantity).toFixed(2) %></strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card sticky-top" style="top: 20px;">
+        <div class="card-body">
+          <h5>Order Summary</h5>
+          <hr>
+          <div class="d-flex justify-content-between fs-4">
+            <strong>Total Payable</strong>
+            <strong class="text-success">₹<%= total %></strong>
+          </div>
+          <button onclick="initiatePayment()" class="btn btn-success w-100 mt-4">
+            Pay with Razorpay
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+async function initiatePayment() {
+  const response = await fetch('/payment/create-order', { method: 'POST' });
+  const data = await response.json();
+
+  if (!data.success) return alert('Failed to create order');
+
+  const options = {
+    key: data.key_id,
+    amount: data.amount,
+    currency: "INR",
+    order_id: data.order_id,
+    name: "ShopCart",
+    description: "Purchase from ShopCart",
+    handler: function (response) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/payment/payment-success';
+
+      const fields = ['razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature'];
+      fields.forEach(field => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = field;
+        input.value = response[field];
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    },
+    prefill: {
+      name: "<%= user.email %>",
+      email: "<%= user.email %>"
+    },
+    theme: { color: "#0d6efd" }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+
+<%- include('partials/footer') %>

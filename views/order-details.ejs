@@ -1,0 +1,52 @@
+<%- include('partials/header') %>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Order Details</h2>
+    <a href="/orders/history" class="btn btn-secondary">← Back to Orders</a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+      <div class="row">
+        <div class="col-md-6">
+          <strong>Order ID:</strong> <%= order.razorpay_order_id || 'ORD-' + order.id %><br>
+          <strong>Placed On:</strong> <%= new Date(order.created_at).toLocaleString() %>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <span class="badge bg-<%= order.status === 'paid' ? 'success' : 'warning' %> fs-6">
+            <%= order.status.toUpperCase() %>
+          </span><br>
+          <strong>Payment ID:</strong> <%= order.razorpay_payment_id || 'N/A' %>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h5 class="mb-3">Purchased Items</h5>
+      
+      <% items.forEach(item => { %>
+        <div class="row border-bottom py-3">
+          <div class="col-md-2">
+            <img src="<%= item.image %>" class="img-fluid rounded" alt="<%= item.name %>" style="height: 80px; object-fit: cover;">
+          </div>
+          <div class="col-md-6">
+            <h6><%= item.name %></h6>
+          </div>
+          <div class="col-md-2 text-center">
+            <strong>₹<%= item.price %> × <%= item.quantity %></strong>
+          </div>
+          <div class="col-md-2 text-end">
+            <strong>₹<%= (item.price * item.quantity).toFixed(2) %></strong>
+          </div>
+        </div>
+      <% }); %>
+
+      <div class="row mt-4">
+        <div class="col-12 text-end">
+          <h4 class="text-success">Total Amount: ₹<%= total %></h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
