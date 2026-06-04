@@ -8,18 +8,46 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="/">🛒 ShopCart</a>
-      <div class="ms-auto">
-        <% if (typeof user !== 'undefined') { %>
-          <a href="/cart" class="btn btn-light me-2">🛍️ Cart</a>
-          <a href="/orders/history" class="btn btn-light me-2">📜 Orders</a>
-          <a href="/logout" class="btn btn-outline-light">Logout</a>
+  <!-- views/partials/header.ejs -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <!-- <a class="navbar-brand fw-bold" href="/">🛒 ShopCart</a>  -->
+    <span class="navbar-brand fw-bold">🛒 ShopCart</span>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <% if (typeof user !== 'undefined' && user) { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">🏠 Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/products/catalogue">🛍️ Shop</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/cart">🛒 Cart</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/orders/history">📜 Orders</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/profile/edit">👤 Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-warning" href="/logout">Logout</a>
+          </li>
         <% } else { %>
-          <a href="/login" class="btn btn-light me-2">Login</a>
-          <a href="/signup" class="btn btn-outline-light">Signup</a>
+          <li class="nav-item">
+            <a class="nav-link" href="/login">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/signup">Signup</a>
+          </li>
         <% } %>
-      </div>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>

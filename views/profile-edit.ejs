@@ -1,0 +1,75 @@
+<%- include('partials/header') %>
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">👤 Account Information</h4>
+        </div>
+        <div class="card-body">
+
+          <% if (success) { %>
+            <div class="alert alert-success alert-dismissible fade show">
+              <%= success %>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          <% } %>
+
+          <% if (error) { %>
+            <div class="alert alert-danger alert-dismissible fade show">
+              <%= error %>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          <% } %>
+
+          <!-- Update Name & Email -->
+          <form action="/profile/edit" method="POST" class="mb-5">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Full Name</label>
+              <input type="text" name="name" class="form-control form-control-lg" 
+                     value="<%= user.name || '' %>" required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Email Address</label>
+              <input type="email" name="email" class="form-control form-control-lg" 
+                     value="<%= user.email %>" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+              Update Account Information
+            </button>
+          </form>
+
+          <hr>
+
+          <!-- Change Password -->
+          <h5 class="mt-4">🔒 Change Password</h5>
+          <form action="/profile/password" method="POST">
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input type="password" name="newPassword" class="form-control" minlength="6" required>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" name="confirmPassword" class="form-control" minlength="6" required>
+            </div>
+
+            <button type="submit" class="btn btn-outline-danger w-100">
+              Update Password
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="/dashboard" class="btn btn-outline-primary">
+          ← Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

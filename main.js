@@ -24,6 +24,12 @@ app.use("/orders", require("./routes/order"));
 // Payment Routes
 app.use("/payment", require("./routes/payment"));
 
+const userRoutes = require("./routes/user");
+// Mount the route
+app.use("/", userRoutes); // or app.use("/user", userRoutes);
+
+
+
 // Home Page
 app.get("/", (req, res) => {
   res.render("index");
