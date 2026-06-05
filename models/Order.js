@@ -81,7 +81,25 @@ getOrderItems: (order_id) => {
       }
     );
   });
-}
+},
+
+// Add this method
+  saveOrderItems: (order_id, cartItems) => {
+    return new Promise((resolve, reject) => {
+      const values = cartItems.map(item => 
+        [order_id, item.product_id, item.quantity, item.price]
+      );
+      
+      db.query(
+        "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ?",
+        [values],
+        (err, result) => {
+          if (err) reject(err);
+          resolve(result);
+        }
+      );
+    });
+  }
 
 };
 

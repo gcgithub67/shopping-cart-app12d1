@@ -44,15 +44,25 @@ router.post("/create-order", authenticate, async (req, res) => {
     cartItems.forEach((item) => (totalAmount += item.price * item.quantity));
 
     const options = {
-      amount: Math.round(totalAmount * 100), // in paise
+      amount: Math.round(totalAmount * 100),
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
 
     const razorpayOrder = await razorpay.orders.create(options);
 
-    await Order.create(user_id, totalAmount, razorpayOrder.id);
+    // Create order with pending status
+    const orderResult = await Order.create(user_id, totalAmount, razorpayOrder.id);
+    const newOrderId = orderResult.insertId;
 
+    // === KEY CHANGE: Save items immediately ===
+    for (const item of cartItems) {
+      await OrderItem.create(newOrderId, item.product_id, item.quantity, item.price);
+    }
+
+    // === NEW: Clear cart for pending order ===
+    await Cart.clearCart(user_id);
+    
     res.json({
       success: true,
       order_id: razorpayOrder.id,
@@ -61,9 +71,7 @@ router.post("/create-order", authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error("Create Order Error:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to create payment order" });
+    res.status(500).json({ success: false, message: "Failed to create payment order" });
   }
 });
 
