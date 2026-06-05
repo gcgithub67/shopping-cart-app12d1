@@ -29,7 +29,13 @@
             <!-- New View Details Button -->
             <a href="/orders/details/<%= order.id %>" class="btn btn-primary btn-sm">
             View Details
-            </a>  
+            </a> 
+            
+            <% if (order.status === 'pending') { %>
+    <a href="/payment/resume/<%= order.id %>" class="btn btn-warning btn-sm">
+      Proceed to Checkout
+    </a>
+  <% } %>
 
           </div>
         </div>

@@ -1,13 +1,21 @@
 <%- include('partials/header') %>
+
 <div class="container mt-4">
   <h2>Checkout</h2>
+  
+  <% if (typeof isPendingOrder !== 'undefined' && isPendingOrder) { %>
+    <div class="alert alert-info">
+      Resuming payment for pending Order #<%= dbOrderId %>
+    </div>
+  <% } %>
+
   <div class="row">
     <div class="col-md-8">
       <% cartItems.forEach(item => { %>
         <div class="card mb-3">
           <div class="row g-0">
             <div class="col-md-3">
-              <img src="<%= item.image %>" class="img-fluid h-100" alt="">
+              <img src="<%= item.image %>" class="img-fluid h-100" alt="<%= item.name %>">
             </div>
             <div class="col-md-9">
               <div class="card-body">
@@ -30,8 +38,9 @@
             <strong>Total Payable</strong>
             <strong class="text-success">₹<%= total %></strong>
           </div>
-          <button onclick="initiatePayment()" class="btn btn-success w-100 mt-4">
-            Pay with Razorpay
+          
+          <button onclick="initiatePayment()" class="btn btn-success w-100 mt-4" id="payButton">
+            <span id="payButtonText">Pay with Razorpay</span>
           </button>
         </div>
       </div>
@@ -42,44 +51,94 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 async function initiatePayment() {
-  const response = await fetch('/payment/create-order', { method: 'POST' });
-  const data = await response.json();
+  const button = document.getElementById('payButton');
+  const buttonText = document.getElementById('payButtonText');
+  
+  // Disable button to prevent multiple clicks
+  button.disabled = true;
+  buttonText.textContent = 'Processing...';
 
-  if (!data.success) return alert('Failed to create order');
+  try {
+    const payload = {};
+    
+    <% if (typeof pendingOrderId !== 'undefined' && pendingOrderId) { %>
+      payload.pendingRazorpayOrderId = "<%= pendingOrderId %>";
+      payload.dbOrderId = <%= dbOrderId || 'null' %>;
+    <% } %>
 
-  const options = {
-    key: data.key_id,
-    amount: data.amount,
-    currency: "INR",
-    order_id: data.order_id,
-    name: "ShopCart",
-    description: "Purchase from ShopCart",
-    handler: function (response) {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/payment/payment-success';
+    const response = await fetch('/payment/initiate-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-      const fields = ['razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature'];
-      fields.forEach(field => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = field;
-        input.value = response[field];
-        form.appendChild(input);
-      });
-      document.body.appendChild(form);
-      form.submit();
-    },
-    prefill: {
-      name: "<%= user.email %>",
-      email: "<%= user.email %>"
-    },
-    theme: { color: "#0d6efd" }
-  };
+    const data = await response.json();
 
-  const rzp = new Razorpay(options);
-  rzp.open();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to create payment order');
+    }
+
+    const options = {
+      key: data.key_id,
+      amount: data.amount,
+      currency: "INR",
+      order_id: data.order_id,
+      name: "ShopCart",
+      description: "Purchase from ShopCart",
+      handler: function (response) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/payment/payment-success';
+
+        const fields = ['razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature'];
+        fields.forEach(field => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = field;
+          input.value = response[field] || '';
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      },
+
+      // ✅ NEW: Handle cancellation / modal close
+      modal: {
+        ondismiss: function() {
+          // Redirect to Order History when user cancels payment
+          window.location.href = '/orders/history';
+        }
+      },
+
+
+
+      prefill: {
+        name: "<%= user ? user.name || user.email : '' %>",
+        email: "<%= user ? user.email : '' %>"
+      },
+      theme: { color: "#0d6efd" }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.error("Payment Initiation Error:", err);
+    alert('Error: ' + (err.message || 'Failed to initiate payment. Please try again.'));
+  } finally {
+    // Re-enable button
+    button.disabled = false;
+    buttonText.textContent = 'Pay with Razorpay';
+  }
 }
+
+// Optional: Add keyboard support (Enter key on checkout page)
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('payButton')) {
+    initiatePayment();
+  }
+});
 </script>
 
 <%- include('partials/footer') %>

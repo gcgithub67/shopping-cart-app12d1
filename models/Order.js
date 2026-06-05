@@ -99,7 +99,21 @@ getOrderItems: (order_id) => {
         }
       );
     });
-  }
+  },
+// NEW: Get pending order details for resume payment
+  getPendingOrderById: (order_id, user_id) => {
+    return new Promise((resolve, reject) => {
+      db.query(
+        `SELECT o.* FROM orders o 
+         WHERE o.id = ? AND o.user_id = ? AND o.status = 'pending'`,
+        [order_id, user_id],
+        (err, results) => {
+          if (err) reject(err);
+          resolve(results[0]);
+        }
+      );
+    });
+  }  
 
 };
 
