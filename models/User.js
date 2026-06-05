@@ -32,7 +32,9 @@ const User = {
   findById: (id) => {
     return new Promise((resolve, reject) => {
       db.query(
-        "SELECT id, name, email, created_at FROM users WHERE id = ?",
+        `SELECT id, name, email, shipping_address, shipping_city, 
+                shipping_state, shipping_zip, shipping_country, created_at 
+         FROM users WHERE id = ?`,
         [id],
         (err, results) => {
           if (err) reject(err);
@@ -43,11 +45,13 @@ const User = {
   },
 
     // Add this method
-  updateProfile: (id, name, email) => {
+  updateProfile: (id, name, email, shipping_address, shipping_city, shipping_state, shipping_zip, shipping_country) => {
     return new Promise((resolve, reject) => {
       db.query(
-        "UPDATE users SET name = ?, email = ? WHERE id = ?",
-        [name, email, id],
+        `UPDATE users SET name = ?, email = ?, shipping_address = ?, 
+         shipping_city = ?, shipping_state = ?, shipping_zip = ?, shipping_country = ? 
+         WHERE id = ?`,
+        [name, email, shipping_address, shipping_city, shipping_state, shipping_zip, shipping_country, id],
         (err, result) => {
           if (err) reject(err);
           resolve(result);
