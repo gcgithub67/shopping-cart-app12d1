@@ -5,26 +5,37 @@
       <div class="card shadow">
         <div class="card-body">
           <h3 class="card-title text-center">Create Account</h3>
+
+          <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                <% errors.forEach(error => { %>
+                  <li><%= error %></li>
+                <% }); %>
+              </ul>
+            </div>
+          <% } %>
+
           <form action="/signup" method="POST">
             <div class="mb-3">
               <label>Full Name</label>
-              <input type="text" name="name" class="form-control" required />
+              <input type="text" name="name" class="form-control" 
+                     value="<%= typeof name !== 'undefined' ? name : '' %>" required minlength="2" />
             </div>
             <div class="mb-3">
               <label>Email</label>
-              <input type="email" name="email" class="form-control" required />
+              <input type="email" name="email" class="form-control" 
+                     value="<%= typeof email !== 'undefined' ? email : '' %>" required />
             </div>
             <div class="mb-3">
               <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                class="form-control"
-                required
-              />
+              <input type="password" name="password" class="form-control" 
+                     required minlength="6" />
+              <small class="text-muted">Minimum 6 characters</small>
             </div>
             <button type="submit" class="btn btn-success w-100">Sign Up</button>
           </form>
+
           <p class="text-center mt-3">
             Already have an account? <a href="/login">Login</a>
           </p>
