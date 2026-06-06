@@ -1,14 +1,31 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const dns = require("dns").promises; // Built-in Node.js DNS module (async)
 
-const validateEmail = (email) => {
+// Basic format validation
+const validateEmailFormat = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 };
 
-const validatePassword = (password) => { return password && password.length >= 6; 
-  // Add more rules (uppercase, number, special) if needed
+// Async MX record validation (checks if domain accepts email)
+const validateEmailDomain = async (email) => {
+  try {
+    const domain = email.split("@")[1];
+    if (!domain) return false;
+
+    const mxRecords = await dns.resolveMx(domain);
+    return mxRecords && mxRecords.length > 0; // Domain has at least one MX record
+  } catch (err) {
+    console.error(`MX lookup failed for ${email}:`, err.message);
+    return false; // Invalid or no MX records
+  }
+};
+
+const validatePassword = (password) => {
+  return password && password.length >= 6;
+  // Add more rules (uppercase, number, special char) if needed
 };
 
 const authController = {
@@ -20,16 +37,25 @@ const authController = {
     if (!name || name.trim().length < 2) {
       errors.push("Name must be at least 2 characters long.");
     }
-    if (!email || !validateEmail(email)) {
+
+    if (!email || !validateEmailFormat(email)) {
       errors.push("Please provide a valid email address.");
+    } else {
+      // Additional server-side MX record check for real domain validity
+      const hasValidDomain = await validateEmailDomain(email);
+      if (!hasValidDomain) {
+        errors.push("Please provide an email address with a valid domain (MX records).");
+      }
     }
+
     if (!password || !validatePassword(password)) {
       errors.push("Password must be at least 6 characters long.");
     }
 
     if (errors.length > 0) {
-      return res.render("signup", { errors, name, email }); // Pass back values for re-population
+      return res.render("signup", { errors, name, email }); // Repopulate form
     }
+
     try {
       await User.create(name, email, password);
       res.redirect("/login");
@@ -43,11 +69,12 @@ const authController = {
     }
   },
 
+  // (login method remains mostly unchanged; you can optionally add MX check here too)
   login: async (req, res) => {
     const { email, password } = req.body;
     const errors = [];
 
-    if (!email || !validateEmail(email)) {
+    if (!email || !validateEmailFormat(email)) {
       errors.push("Please provide a valid email address.");
     }
     if (!password) {
@@ -63,7 +90,6 @@ const authController = {
         return res.render("login", { errors: ["Invalid email or password"], email });
       }
 
-      // ✅ Updated JWT payload with full user info including shipping address
       const token = jwt.sign(
         {
           id: user.id,
