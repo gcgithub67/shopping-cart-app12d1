@@ -30,12 +30,20 @@
             <a href="/orders/details/<%= order.id %>" class="btn btn-primary btn-sm">
             View Details
             </a> 
-            
-            <% if (order.status === 'pending') { %>
-    <a href="/payment/resume/<%= order.id %>" class="btn btn-warning btn-sm">
-      Proceed to Checkout
+
+
+            <!-- Inside the card-body, after View Details button -->
+<div class="d-flex justify-content-end gap-2">
+ 
+  
+  <% if (order.status === 'paid') { %>
+    <a href="/orders/receipt/<%= order.id %>" class="btn btn-success btn-sm">
+      📥 Download Receipt (PDF)
     </a>
+  <% } else if (order.status === 'pending') { %>
+    <a href="/payment/resume/<%= order.id %>" class="btn btn-warning btn-sm">Proceed to Checkout</a>
   <% } %>
+</div>
 
           </div>
         </div>

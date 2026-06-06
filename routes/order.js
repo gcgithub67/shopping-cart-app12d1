@@ -3,6 +3,8 @@ const router = express.Router();
 const authenticate = require("../middleware/auth");
 const Order = require("../models/Order");
 
+const { generateReceiptPDF } = require("../utils/generateReceipt");  // Add this
+
 router.get("/history", authenticate, async (req, res) => {
   try {
     const orders = await Order.getUserOrders(req.user.id);
@@ -47,6 +49,31 @@ router.get("/details/:id", authenticate, async (req, res) => {
     res.status(500).render("error", {
       message: "Unable to load order details. Please try again.",
     });
+  }
+});
+
+// NEW Receipt Route
+router.get("/receipt/:id", authenticate, async (req, res) => {
+  const orderId = parseInt(req.params.id);
+  const userId = req.user.id;
+
+  try {
+    const order = await Order.getOrderById(orderId, userId);
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    if (order.status !== 'paid') {
+      return res.status(400).send("Receipt is only available for paid orders");
+    }
+
+    const items = await Order.getOrderItems(orderId);
+
+    // Pass full user object (contains shipping address)
+    await generateReceiptPDF(order, items, req.user, res);
+  } catch (err) {
+    console.error("Receipt Generation Error:", err);
+    res.status(500).send("Failed to generate receipt PDF");
   }
 });
 

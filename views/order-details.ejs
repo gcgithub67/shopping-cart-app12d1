@@ -44,6 +44,13 @@
         <div class="col-12 text-end">
           <h4 class="text-success">Total Amount: ₹<%= total %></h4>
         </div>
+        <% if (order.status === 'paid') { %>
+  <div class="text-end mt-4">
+    <a href="/orders/receipt/<%= order.id %>" class="btn btn-success">
+      📥 Download PDF Receipt
+    </a>
+  </div>
+<% } %>
       </div>
     </div>
   </div>
