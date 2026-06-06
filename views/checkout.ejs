@@ -38,7 +38,40 @@
             <strong>Total Payable</strong>
             <strong class="text-success">₹<%= total %></strong>
           </div>
-          
+
+          <!-- Replace the entire Shipping Address block with this -->
+
+<!-- Shipping Address Display (Improved) -->
+<hr>
+<h6 class="mt-3">📍 Shipping Address</h6>
+
+<% if (user && (user.shipping_address || user.shipping_city)) { %>
+  <div class="border p-3 bg-light rounded">
+    <p class="mb-1"><strong><%= user.name || '' %></strong></p>
+    <% if (user.shipping_address) { %>
+      <p class="mb-1"><%= user.shipping_address %></p>
+    <% } %>
+    <% if (user.shipping_city || user.shipping_state || user.shipping_zip) { %>
+      <p class="mb-1">
+        <%= user.shipping_city || '' %> 
+        <%= user.shipping_state ? ', ' + user.shipping_state : '' %> 
+        <%= user.shipping_zip ? ' - ' + user.shipping_zip : '' %>
+      </p>
+    <% } %>
+    <% if (user.shipping_country) { %>
+      <p class="mb-0"><%= user.shipping_country %></p>
+    <% } %>
+  </div>
+  <small class="text-muted d-block mt-2">
+    <a href="/profile/edit">Edit Shipping Address</a>
+  </small>
+<% } else { %>
+  <div class="alert alert-warning">
+    No shipping address found. 
+    <a href="/profile/edit" class="alert-link">Please add one in your profile</a>
+  </div>
+<% } %>
+
           <button onclick="initiatePayment()" class="btn btn-success w-100 mt-4" id="payButton">
             <span id="payButtonText">Pay with Razorpay</span>
           </button>
@@ -103,15 +136,11 @@ async function initiatePayment() {
         form.submit();
       },
 
-      // ✅ NEW: Handle cancellation / modal close
       modal: {
         ondismiss: function() {
-          // Redirect to Order History when user cancels payment
           window.location.href = '/orders/history';
         }
       },
-
-
 
       prefill: {
         name: "<%= user ? user.name || user.email : '' %>",
@@ -127,13 +156,12 @@ async function initiatePayment() {
     console.error("Payment Initiation Error:", err);
     alert('Error: ' + (err.message || 'Failed to initiate payment. Please try again.'));
   } finally {
-    // Re-enable button
     button.disabled = false;
     buttonText.textContent = 'Pay with Razorpay';
   }
 }
 
-// Optional: Add keyboard support (Enter key on checkout page)
+// Optional: Add keyboard support
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.getElementById('payButton')) {
     initiatePayment();

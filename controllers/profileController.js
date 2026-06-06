@@ -1,11 +1,11 @@
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 const profileController = {
   // GET: Show Edit Profile Page
-
   getEditProfile: async (req, res) => {
     try {
-      const fullUser = await User.findById(req.user.id); // Get all fields
+      const fullUser = await User.findById(req.user.id); // Get latest data
 
       res.render("profile-edit", {
         user: fullUser || req.user,
@@ -18,7 +18,7 @@ const profileController = {
     }
   },
 
-  // POST: Update Name & Email
+  // POST: Update Name & Email + Shipping Address
   updateProfile: async (req, res) => {
     try {
       const {
@@ -48,19 +48,29 @@ const profileController = {
         shipping_country ? shipping_country.trim() : "India",
       );
 
-      // Update session
-      req.user.name = name.trim();
-      req.user.email = email.trim();
-      req.user.shipping_address = shipping_address;
-      req.user.shipping_city = shipping_city;
-      req.user.shipping_state = shipping_state;
-      req.user.shipping_zip = shipping_zip;
-      req.user.shipping_country = shipping_country;
+      // Fetch latest user data
+      const updatedUser = await User.findById(userId);
 
-      res.redirect(
-        //"/profile/edit?success=Profile & Shipping Address updated successfully",
-		"/profile/edit?success=Updated",
+      // ✅ Re-issue new JWT with updated shipping address
+      const newToken = jwt.sign(
+        {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          shipping_address: updatedUser.shipping_address,
+          shipping_city: updatedUser.shipping_city,
+          shipping_state: updatedUser.shipping_state,
+          shipping_zip: updatedUser.shipping_zip,
+          shipping_country: updatedUser.shipping_country,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" }
       );
+
+      // Set new token in cookie
+      res.cookie("token", newToken, { httpOnly: true });
+
+      res.redirect("/profile/edit?success=Updated");
     } catch (error) {
       console.error("Profile Update Error:", error);
       res.redirect("/profile/edit?error=Failed to update profile");
@@ -75,7 +85,7 @@ const profileController = {
 
       if (!newPassword || newPassword.length < 6) {
         return res.redirect(
-          "/profile/edit?error=Password must be at least 6 characters",
+          "/profile/edit?error=Password must be at least 6 characters"
         );
       }
 

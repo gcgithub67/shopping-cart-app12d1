@@ -22,10 +22,20 @@ const authController = {
         return res.status(401).send("Invalid email or password");
       }
 
+      // ✅ Updated JWT payload with full user info including shipping address
       const token = jwt.sign(
-        { id: user.id, email: user.email },
+        {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          shipping_address: user.shipping_address,
+          shipping_city: user.shipping_city,
+          shipping_state: user.shipping_state,
+          shipping_zip: user.shipping_zip,
+          shipping_country: user.shipping_country,
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "24h" },
+        { expiresIn: "24h" }
       );
 
       res.cookie("token", token, { httpOnly: true });
