@@ -21,7 +21,8 @@
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.22.4",
     "pdfkit": "^0.15.2",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "nodemailer": "^6.9.14"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

@@ -23,9 +23,12 @@
                      value="<%= typeof name !== 'undefined' ? name : '' %>" required minlength="2" />
             </div>
             <div class="mb-3">
-              <label>Email</label>
+              <label>Email Address</label>
               <input type="email" name="email" class="form-control" 
-                     value="<%= typeof email !== 'undefined' ? email : '' %>" required />
+                     value="<%= typeof email !== 'undefined' ? email : '' %>" 
+                     required 
+                     placeholder="yourname@example.com" />
+              <small class="text-muted">Must be a real email with valid domain (MX records)</small>
             </div>
             <div class="mb-3">
               <label>Password</label>

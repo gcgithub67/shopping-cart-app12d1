@@ -37,6 +37,12 @@ const profileController = {
         return res.redirect("/profile/edit?error=Name and Email are required");
       }
 
+      // Check if email is already taken by another user (try-catch block)
+      const existingUser = await User.findByEmail(email);
+      if (existingUser && existingUser.id !== userId) {
+        return res.redirect("/profile/edit?error=Email is already registered by another account");
+      }
+
       await User.updateProfile(
         userId,
         name.trim(),

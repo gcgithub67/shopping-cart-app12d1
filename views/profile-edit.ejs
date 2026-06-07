@@ -27,7 +27,13 @@
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Email Address</label>
-                <input type="email" name="email" class="form-control" value="<%= user.email %>" required>
+                <!-- Email field made non-editable -->
+                <input type="email" 
+                       name="email" 
+                       class="form-control bg-light" 
+                       value="<%= user.email %>" 
+                       readonly 
+                       required> 
               </div>
             </div>
 
@@ -54,9 +60,19 @@
 
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label class="form-label">ZIP / Postal Code</label>
-                <input type="text" name="shipping_zip" class="form-control" value="<%= user.shipping_zip || '' %>">
-              </div>
+    <label class="form-label fw-bold">ZIP / Postal Code</label>
+    <input 
+      type="number" 
+      name="shipping_zip" 
+      class="form-control" 
+      value="<%= user.shipping_zip || '' %>" 
+      min="1" 
+      step="1"
+      placeholder="e.g. 110001"
+      title="ZIP Code must be a positive number greater than 0"
+      required>
+    <small class="text-muted">Must be a positive integer (minimum 1)</small>
+  </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Country</label>
                 <input type="text" name="shipping_country" class="form-control" value="<%= user.shipping_country || 'India' %>">
