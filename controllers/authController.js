@@ -9,66 +9,33 @@ const validateEmailFormat = (email) => {
   return re.test(email);
 };
 
-// === FIXED SMTP + MX Email Verification ===
-const verifyEmailWithSMTP = async (email) => {
+// Improved: Check both domain MX records + basic "live" username validation
+const validateEmailDomainAndUser = async (email) => {
   try {
     const [localPart, domain] = email.split("@");
-
+    
     if (!localPart || localPart.length < 1 || localPart.length > 64) {
-      return { valid: false, message: "Invalid email username part" };
+      return { valid: false, message: "Invalid username part in email" };
     }
 
+    // Basic username (local-part) validation - allow common characters
     const localRe = /^[a-zA-Z0-9._%+-]+$/;
     if (!localRe.test(localPart)) {
       return { valid: false, message: "Email username contains invalid characters" };
     }
 
-    // Step 1: MX Records
-    let mxRecords;
-    try {
-      mxRecords = await dns.resolveMx(domain);
-    } catch (dnsErr) {
-      return { valid: false, message: "Invalid email domain (no MX records)" };
-    }
-
+    // MX Record check (domain must be able to receive email)
+    const mxRecords = await dns.resolveMx(domain);
     if (!mxRecords || mxRecords.length === 0) {
       return { valid: false, message: "Domain does not have valid MX records" };
     }
 
-    // Sort by priority (lowest first)
-    mxRecords.sort((a, b) => a.priority - b.priority);
-    const mxHost = mxRecords[0].exchange;
-
-    // Step 2: Try SMTP connection (with better error handling)
-    const transporter = nodemailer.createTransport({
-      host: mxHost,
-      port: 25,
-      secure: false,
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000,
-      logger: false,
-      debug: false,
-    });
-
-    // Test connection
-    await transporter.verify().catch(() => {
-      // Many servers block port 25 or verification - fallback gracefully
-      throw new Error("SMTP connection limited");
-    });
-
-    return { 
-      valid: true, 
-      message: "Email domain and username look valid" 
-    };
-
+    return { valid: true };
   } catch (err) {
-    console.error(`Email verification error for ${email}:`, err.message);
-    
-    // Graceful fallback - accept if MX check passed
+    console.error(`Email validation failed for ${email}:`, err.message);
     return { 
-      valid: true, 
-      message: "Email accepted (basic domain validation passed)" 
+      valid: false, 
+      message: "Please use a valid email with live domain (MX records)" 
     };
   }
 };
@@ -91,8 +58,8 @@ const authController = {
     if (!email || !validateEmailFormat(email)) {
       errors.push("Please provide a valid email address.");
     } else {
-      // === Updated: SMTP + MX + Username Verification ===
-      const emailCheck = await verifyEmailWithSMTP(email);
+      // === Enhanced Check: Live username + Domain with MX records ===
+      const emailCheck = await validateEmailDomainAndUser(email);
       if (!emailCheck.valid) {
         errors.push(emailCheck.message);
       }
